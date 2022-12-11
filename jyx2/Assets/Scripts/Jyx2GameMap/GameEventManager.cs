@@ -18,6 +18,17 @@ using UnityEngine;
 public class GameEventManager : MonoBehaviour
 {
     GameEvent curEvent = null;
+    public static GameEventManager Inst;
+
+    private void Awake()
+    {
+        Inst = this;
+    }
+
+    public string CurrEvent
+    {
+        get {  return  GameEventManager._currentEvt; }
+    }
 
     public bool OnTriggerEvent(GameEvent newEvent)
     {
@@ -202,16 +213,21 @@ public class GameEventManager : MonoBehaviour
 
         curEvent = null;
     }
-
+    /// <summary>
+    /// 这个貌似只是场景内的索引，真正的eventId，通过另一个方法获取。。。。
+    /// </summary>
     static string _currentEvt;
     public void SetCurrentGameEvent(GameEvent evt)
     {
+   
         if (evt == null)
         {
+            Debug.LogError("<color=red>老是被设置成 空？？</color>");
             _currentEvt = "";
         }
         else
         {
+            
             _currentEvt = evt.name;
         }
     }

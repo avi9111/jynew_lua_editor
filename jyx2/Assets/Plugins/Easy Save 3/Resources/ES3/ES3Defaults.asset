@@ -54,6 +54,7 @@ MonoBehaviour:
     - Sirenix.OdinInspector.CompatibilityLayer.Editor
     - UniTask.Editor
     - Analytics
+    - FR2
     showAdvancedSettings: 0
   addMgrToSceneAutomatically: 0
   autoUpdateReferences: 1

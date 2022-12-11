@@ -19,6 +19,7 @@ using UnityEngine;
 
 public class MapTeleportor : MonoBehaviour
 {
+	public static MapTeleportor Inst;
 	[InfoBox("对应指定场景的Level/Triggers下节点")]
 	[LabelText("传送的位置名")] 
 	public string TransportTriggerName;
@@ -31,6 +32,11 @@ public class MapTeleportor : MonoBehaviour
 	
 	[LabelText("高亮的物体")]
 	public GameObject[] m_EventTargets;
+
+	private void Awake()
+	{
+		Inst = this;
+	}
 
 	private async void Start()
 	{
@@ -117,22 +123,27 @@ public class MapTeleportor : MonoBehaviour
 
 	public void DoTransport()
 	{
+		DoTransportByName();
+	}
+
+	public void DoTransportByName(string mapName="")
+	{
 		var curMap = LevelMaster.GetCurrentGameMap();
 			
 		Assert.IsNotNull(curMap);
 
-		var nextMap = new Jyx2ConfigMap();
-
+		//var nextMap = new Jyx2ConfigMap();
+		Jyx2ConfigMap nextMap = null;
 		if (curMap.Tags.Contains("WORLDMAP"))
 		{
-			nextMap = Jyx2ConfigMap.GetMapByName(this.gameObject.name);
+			nextMap = Jyx2ConfigMap.GetMapByName(mapName==""?this.gameObject.name:mapName);
 			//记录当前世界位置
 			Jyx2Player.GetPlayer().RecordWorldInfo();
 		}
 
 		else
 		{
-			nextMap = GameConfigDatabase.Instance.Get<Jyx2ConfigMap>(curMap.GetTransportToMapValue(this.gameObject.name));
+			nextMap = GameConfigDatabase.Instance.Get<Jyx2ConfigMap>(curMap.GetTransportToMapValue(mapName==""?this.gameObject.name:mapName));
 		}
 
 		if (nextMap == null)

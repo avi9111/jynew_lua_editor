@@ -24,6 +24,8 @@ using Jyx2Configs;
 using Jyx2.Middleware;
 using UnityEngine.Rendering.PostProcessing;
 using Rewired;
+using Steamworks.Data;
+using UnityEngine.AI;
 
 namespace Jyx2
 {
@@ -56,14 +58,45 @@ namespace Jyx2
         {
             Talk(roleId, content, "", 0, callback);
         }
-        
+
+        public static void Eve()
+        {
+          //  Debug.Log(GameEventManager.GetCurrentGameEvent().name);
+          //  Debug.LogError("Test Xlu eve()");
+                Debug.Log($"事件={GameEventManager.Inst.CurrEvent}；请自行查找");
+        }
+
+        public static void EveDel()
+        {
+            GameEventManager.Inst.SetCurrentGameEvent(null);
+            Debug.Log("清空了。。。当前事件 ");
+            Eve();
+        }
+
+        public static void EveMove(float z,float x)
+        {
+            var player = LevelMaster.Instance.GetPlayer();
+            var nav = player.GetComponent<NavMeshAgent>();
+
+            Debug.LogError("p1=" + player.transform.position);
+            nav.enabled = false;
+            player.transform.position = new Vector3(x, player.transform.position.y, z);
+            Debug.LogError("p2=" + player.transform.position);
+          //  nav.SetDestination(player.transform.position);
+            Debug.LogError("p3=" + player.transform.position);
+            DelayInvoke.StartTimmer(0.1f, () =>
+            {
+                nav.enabled = true;
+            });
+        }
+
         public static void Talk(int roleId, string content, string talkName, int type, Action callback)
         {
             StoryEngine.BlockPlayerControl = true;
             Jyx2_UIManager.Instance.ShowUIAsync(nameof(ChatUIPanel), ChatType.RoleId, roleId, content, type, new Action(() =>
             {
                 StoryEngine.BlockPlayerControl = false;
-                callback();
+                callback?.Invoke();//已修复可能传入null 问题。。。
             })).Forget();
         }
 
@@ -274,12 +307,16 @@ namespace Jyx2
         {
             LevelMaster.GetCurrentGameMap().ForceSetLeaveMusicId = musicId;
         }
-
-        public static void AskJoin(Action<bool> callback)
+        /// <summary>
+        /// 这个方法，必须使用 .Net 4.x??
+        /// </summary>
+        /// <param name="callback"></param>
+        public static void AskJoin(Action<bool> callback)//TODO: 这个传参数条用有问题, 提示 Action<bool> 必须加入 Sharp.dll
         {
             ShowYesOrNoSelectPanel("是否要求加入？", callback);
         }
-
+        
+ 
         //角色加入，同时获得对方身上的物品
         public static void Join(int roleId)
         {
@@ -1702,6 +1739,7 @@ namespace Jyx2
 
         public static void ShowYesOrNoSelectPanel(string selectMessage, Action<bool> callback)
         {
+            Debug.LogError("talk ask..???");
             UniTask.Void(async () =>
             {
                 List<string> selectionContent = new List<string>() {"是", "否"};

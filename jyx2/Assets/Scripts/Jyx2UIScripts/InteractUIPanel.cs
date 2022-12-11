@@ -31,6 +31,7 @@ public partial class InteractUIPanel : Jyx2_UIBase
 
 	protected override void OnShowPanel(params object[] allParams)
 	{
+		Debug.LogError("OnShowPanel...测试堆栈");
 		base.OnShowPanel(allParams);
 
 		if (allParams == null) return;

@@ -145,6 +145,23 @@ public class GameEvent : MonoBehaviour
         //不再需要直接点击物体交互了，因此InteractiveObj就没必要初始化了 by 0kk470
     }
 
+    private void Start()
+    {
+        //另外的事件，会用到这个名字，不能修改（只能是保持数字 index，+中文会有问题）
+//         #if UNITY_EDITOR
+//         if (name.Contains("-") == false)
+//         {
+//             string npcStr = "no target";
+//             if (m_EventTargets.Length > 0)
+//             {
+//                 npcStr = m_EventTargets[0].name;
+//             }
+//
+//             name += $"-{npcStr}-{m_InteractiveEventId}";
+//         }
+// #endif
+    }
+
     private bool IsPlayerEntered(Collider collider)
     {
         var player = Jyx2Player.GetPlayer();
