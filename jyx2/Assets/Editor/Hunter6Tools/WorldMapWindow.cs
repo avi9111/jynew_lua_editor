@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Codice.Utils;
+using Jyx2Configs;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
@@ -44,24 +46,34 @@ public class WorldMapWindow : EditorWindow
    private ReorderableList reorderableList;
    private HListView _lvCfg;
    private List<string> lstTriggersName=new List<string>();
-
-  // private List<GameObject> lstTriggers = new List<GameObject>();
+   // private List<GameObject> lstTriggers = new List<GameObject>();
   private List<TriggerInScene> lstTriggers = new List<TriggerInScene>();
-   // private void Awake()
-    // {
-    //     titleContent = new GUIContent("场景触发器管理");
-    //     DoLoadSceneTriggers();
-    //     _lvCfg = new HListView(); 
-    //     _lvCfg.SetData(lstTriggers.Count, OnItem2GUI);
-    // }
-
+  private TextAsset _cfgMap;
+  private Jyx2ConfigMap[] _jyx2ConfigMaps;
     private void OnEnable()
     {
         titleContent = new GUIContent("场景触发器管理");
         DoLoadSceneTriggers();
         _lvCfg = new HListView(); 
-        _lvCfg.SetData(lstTriggers.Count, OnItem2GUI);
+       
         
+    }
+
+    void ReloadCfgDatas(Jyx2ConfigMap[] jyx2ConfigMaps)
+    {
+        this._jyx2ConfigMaps = jyx2ConfigMaps;
+        // var maps = GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>();
+        // if (maps == null) return;
+        // var jyx2ConfigMaps = maps as Jyx2ConfigMap[] ?? maps.ToArray();
+        // if(!jyx2ConfigMaps.Any()) return;
+        
+       // _lvCfg.SetData(lstTriggers.Count, OnItem2GUI);
+       _lvCfg.SetData(jyx2ConfigMaps.Length, OnItem2MapGUI);
+    }
+
+    void OnItem2MapGUI(HListViewItem item)
+    {
+        item.text = this._jyx2ConfigMaps[item.row].Name;
     }
 
     void OnItem2GUI(HListViewItem item)
@@ -73,6 +85,7 @@ public class WorldMapWindow : EditorWindow
     void DoLoadSceneTriggers()
     {
         lstTriggers.Clear();
+        lstTriggersName.Clear();
         var root = GameObject.Find("Level/Triggers");
         for (int i = 0; i < root.transform.childCount; i++)
         {
@@ -115,7 +128,7 @@ public class WorldMapWindow : EditorWindow
         GUILayout.EndHorizontal();
         float y = 30f;
         paramArea.Set(0, y, this.position.width * percent_of_param /*- ResizeWidth / 2*/, this.position.height-60);
-        stateArea.Set(paramArea.width /*+ ResizeWidth*/, y, this.position.width * (1 - percent_of_param) /*- ResizeWidth / 2*/, this.position.height);
+        stateArea.Set(paramArea.width + 30 /*+ ResizeWidth*/, y, this.position.width * (1 - percent_of_param) /*- ResizeWidth / 2*/, this.position.height);
         //拖动的逻辑计算（拖动的 Repaint()需要在 Update()处理，OnGUI())
         ParamAreaResize();
         
@@ -135,6 +148,13 @@ public class WorldMapWindow : EditorWindow
         EditorGUI.DrawRect(paramArea, BackgroundColor);
         OnTriggersGUI(paramArea);
         OnCfgGUi(stateArea);
+        
+
+    }
+
+    void DoChangeTriggerName()
+    {
+        
     }
 
 
@@ -173,12 +193,51 @@ public class WorldMapWindow : EditorWindow
 
     void OnCfgGUi(Rect rect)
     {
+        //左移按钮
+        if (GUI.Button(new Rect(paramArea.width + 5, 100, 23, 15), "<<"))
+        {
+            DoChangeTriggerName();
+        }
         GUILayout.BeginArea(rect);
         //scrollView = GUILayout.BeginScrollView(scrollView);
         //reorderableList.DoLayoutList();
         //GUILayout.EndScrollView();
+        //右上 Banner of 数据表（by Mods)
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("直接运行时加载"))
+        {
+            DoLoadCfgInRuntime();
+        }
+        GUILayout.Space(10);
+
+        _cfgMap = EditorGUILayout.ObjectField(_cfgMap, typeof(TextAsset), true) as TextAsset; 
+        if (GUI.changed)
+        {
+            if(_cfgMap!=null)
+                DoLoadCfg(_cfgMap);
+        }
+        
+        GUILayout.EndHorizontal();
+        //显示数据列表
         _lvCfg.DoGUI();
         GUILayout.EndArea();
+    }
+
+    void DoLoadCfgInRuntime()
+    {
+        ReloadCfgDatas(GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>().ToArray());
+    }
+
+    /// <summary>
+    /// 读取数据表
+    /// </summary>
+    void DoLoadCfg(TextAsset config)
+    {
+        Debug.LogError(GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>());//前
+        //var config = await ResLoader.LoadAsset<TextAsset>($"Assets/Configs/Datas.bytes");
+        GameConfigDatabase.Instance.Init(config.bytes);
+        Debug.LogError(GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>().Count()+" c 后");//后
+        ReloadCfgDatas(GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>().ToArray());
     }
 
     void OnTriggersGUI(Rect rect)

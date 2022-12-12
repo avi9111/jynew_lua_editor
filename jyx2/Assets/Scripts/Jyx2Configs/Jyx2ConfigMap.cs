@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using i18n.TranslatorDef;
 using Jyx2;
 using ProtoBuf;
@@ -137,10 +139,16 @@ namespace Jyx2Configs
             }
             return null;
         }
-        
+
+        private static Jyx2ConfigMap[] _dataCache;
         public static Jyx2ConfigMap GetMapByName(string name)
         {
-            foreach(var map in GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>())
+            if (_dataCache == null)
+            {
+                _dataCache = GameConfigDatabase.Instance.GetAll<Jyx2ConfigMap>().ToArray();
+            }
+            Debug.LogError("map Count=" + _dataCache.Length);
+            foreach(var map in _dataCache)
             {
                 if (map.Name.Equals(name))
                 {
